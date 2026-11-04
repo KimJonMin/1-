@@ -1,1129 +1,943 @@
-markdown
-📋 복사
-# 🖥️ 개발 워크스테이션 구축 결과물
+# 🐳 개발 워크스테이션 환경 구성 미션
 
-## 📌 프로젝트 개요
+> **"내 컴퓨터에서만 돌아가는 문제"를 제거하고,  
+> 누구나 동일하게 실행·배포·디버깅할 수 있는 재현 가능한 개발 환경을 구축한다.**
 
-> 재현 가능한 개발 환경을 CLI, Docker, Git을 활용하여 구축하는 미션입니다.
-> 어떤 환경에서도 동일한 개발 환경을 빠르게 구성할 수 있도록
-> Dockerfile 기반 커스텀 이미지를 제작하고, GitHub로 관리합니다.
-
-### 미션 목표
-- CLI 명령어로 파일/디렉토리 조작 및 권한 관리
-- Docker를 활용한 컨테이너 환경 구축
-- Dockerfile로 커스텀 이미지 제작
-- 포트 매핑, 볼륨 마운트로 실용적인 컨테이너 운영
-- Docker Compose로 멀티 컨테이너 환경 구성
-- 환경 변수로 설정과 코드 분리
-- Git/GitHub SSH 키 기반 버전 관리
+**사용 기술**: Linux CLI · Docker · Git / GitHub
 
 ---
 
-## 💻 실행 환경
+## 📑 목차
 
-| 항목 | 내용 |
-|------|------|
-| OS | Windows 11 |
-| 쉘/터미널 | PowerShell 7.x |
-| Docker 버전 | `docker --version` 결과 기재 |
-| Git 버전 | `git --version` 결과 기재 |
-
-```powershell
-PS C:\> docker --version
-Docker version 27.x.x, build xxxxxxx
-
-PS C:\> git --version
-git version 2.x.x.windows.x
-```
-
----
-
-## ✅ 수행 항목 체크리스트
-
-| 번호 | 항목 | 수행 여부 | 섹션 |
-|------|------|-----------|------|
-| 1 | 터미널 조작 (이동/생성/복사/삭제) | ✅ | 섹션 1 |
-| 2 | 파일 권한 확인/변경 | ✅ | 섹션 2 |
-| 3 | Docker 설치 및 버전 확인 | ✅ | 섹션 3 |
-| 4 | Docker 기본 운영 명령 | ✅ | 섹션 4 |
-| 5 | hello-world 컨테이너 실행 | ✅ | 섹션 5 |
-| 6 | ubuntu 컨테이너 진입 및 명령 수행 | ✅ | 섹션 5 |
-| 7 | 커스텀 이미지 제작 (Dockerfile) | ✅ | 섹션 6 |
-| 8 | 포트 매핑 및 접속 확인 | ✅ | 섹션 7 |
-| 9 | Docker 볼륨 영속성 검증 | ✅ | 섹션 8 |
-| 10 | Git 설정 및 GitHub 연동 | ✅ | 섹션 9 |
-| 11 | Docker Compose 기초 (단일 서비스) | ✅ | 섹션 10 |
-| 12 | Docker Compose 멀티 컨테이너 | ✅ | 섹션 11 |
-| 13 | Compose 운영 명령어 | ✅ | 섹션 12 |
-| 14 | 환경 변수 활용 | ✅ | 섹션 13 |
-| 15 | GitHub SSH 키 설정 | ✅ | 섹션 14 |
+- [1. 프로젝트 개요](#1-프로젝트-개요)
+- [2. 실행 환경](#2-실행-환경)
+- [3. 저장소 구조](#3-저장소-구조)
+- [4. 수행 항목 체크리스트](#4-수행-항목-체크리스트)
+- [5. 터미널 조작 로그](#5-터미널-조작-로그)
+  - [5-1. 위치/목록/이동](#5-1-위치목록이동)
+  - [5-2. 생성/복사/이동/삭제](#5-2-생성복사이동삭제)
+  - [5-3. 파일 내용 확인/빈 파일 생성](#5-3-파일-내용-확인빈-파일-생성)
+- [6. 권한 실습 및 증거](#6-권한-실습-및-증거)
+  - [6-1. 파일 권한 변경 전/후](#6-1-파일-권한-변경-전후)
+  - [6-2. 디렉토리 권한 변경 전/후](#6-2-디렉토리-권한-변경-전후)
+- [7. Docker 설치 및 기본 점검](#7-docker-설치-및-기본-점검)
+- [8. Docker 기본 운영 명령](#8-docker-기본-운영-명령)
+  - [8-1. 이미지 관리](#8-1-이미지-관리)
+  - [8-2. 컨테이너 관리](#8-2-컨테이너-관리)
+  - [8-3. 로그 및 리소스 확인](#8-3-로그-및-리소스-확인)
+- [9. 컨테이너 실행 실습](#9-컨테이너-실행-실습)
+  - [9-1. hello-world 실행](#9-1-hello-world-실행)
+  - [9-2. ubuntu 컨테이너 내부 진입](#9-2-ubuntu-컨테이너-내부-진입)
+  - [9-3. attach vs exec 관찰 정리](#9-3-attach-vs-exec-관찰-정리)
+- [10. 커스텀 이미지 제작 (Dockerfile)](#10-커스텀-이미지-제작-dockerfile)
+  - [10-1. 선택한 베이스와 커스텀 포인트](#10-1-선택한-베이스와-커스텀-포인트)
+  - [10-2. 소스 코드](#10-2-소스-코드)
+  - [10-3. 빌드 및 실행](#10-3-빌드-및-실행)
+- [11. 포트 매핑 및 접속 증거](#11-포트-매핑-및-접속-증거)
+- [12. Docker 볼륨 영속성 검증](#12-docker-볼륨-영속성-검증)
+- [13. Git 설정 및 GitHub 연동](#13-git-설정-및-github-연동)
+- [14. 보안 및 개인정보 보호](#14-보안-및-개인정보-보호)
+- [15. 트러블슈팅](#15-트러블슈팅)
+- [16. 회고](#16-회고)
 
 ---
 
-## 📋 수행 결과 상세
+## 1. 프로젝트 개요
+
+### 1-1. 미션 목표
+- Linux CLI로 작업 공간과 권한을 **일관되게** 정리한다.
+- Docker로 애플리케이션을 **이미지화** 하여 환경 차이에 독립적인 실행을 보장한다.
+- Dockerfile로 커스텀 웹 서버를 빌드하고, **포트 매핑 / 볼륨**의 동작을 검증한다.
+- Git과 GitHub로 모든 산출물을 **버전 관리**하고, 저장소 링크만으로 재현 가능하도록 문서화한다.
+
+### 1-2. 산출물 요약
+- 커스텀 Dockerfile 기반 웹 서버 (`app/`, `Dockerfile`)
+- 터미널 / Docker 운영 로그 (`logs/`)
+- 접속·마운트·볼륨 검증 스크린샷 (`docs/screenshots/`)
+- 본 문서(`README.md`)
 
 ---
 
-### [섹션 1] 터미널 조작 로그
+## 2. 실행 환경
 
-#### [1-1] 현재 위치 확인
-```powershell
-PS C:\> pwd
-Path
-----
-C:\Users\[사용자명]
+| 구분 | 버전 / 정보 |
+|---|---|
+| OS | Ubuntu 22.04 LTS (x86_64) |
+| 셸 | bash 5.1 |
+| 터미널 | GNOME Terminal |
+| Docker | 24.0.7, build afdd53b |
+| Git | 2.34.1 |
+| 에디터 | VS Code 1.90 (GitHub 확장 사용) |
+
+> 각자 환경에 맞게 값을 교체하세요. 확인 명령:  
+> `uname -a`, `bash --version`, `docker --version`, `git --version`
+
+---
+
+## 3. 저장소 구조
+
 ```
-
-#### [1-2] 목록 확인 (숨김 파일 포함)
-```powershell
-PS C:\> ls -Force
-
-    디렉터리: C:\Users\[사용자명]
-
-Mode    LastWriteTime    Length  Name
-----    -------------    ------  ----
-d--h-   2025-01-01       .ssh
-d----   2025-01-01       Documents
--a---   2025-01-01  100  .gitconfig
-```
-
-#### [1-3] 디렉토리 이동
-```powershell
-PS C:\> cd C:\Users\[사용자명]\Documents
-PS C:\Users\[사용자명]\Documents>
-```
-
-#### [1-4] 디렉토리 생성
-```powershell
-PS C:\> mkdir my-dev-workspace
-PS C:\> mkdir my-dev-workspace\src
-PS C:\> mkdir my-dev-workspace\docker
-PS C:\> mkdir my-dev-workspace\logs
-PS C:\> mkdir my-dev-workspace\screenshots
-```
-
-#### [1-5] 빈 파일 생성
-```powershell
-PS C:\my-dev-workspace> New-Item -ItemType File -Name "test.txt"
-
-    디렉터리: C:\my-dev-workspace
-
-Mode    LastWriteTime    Length  Name
-----    -------------    ------  ----
--a---   2025-01-01  0           test.txt
-```
-
-#### [1-6] 파일 복사
-```powershell
-PS C:\my-dev-workspace> Copy-Item test.txt test_backup.txt
-```
-
-#### [1-7] 파일 이동 / 이름 변경
-```powershell
-# 이동
-PS C:\my-dev-workspace> Move-Item test_backup.txt logs\test_backup.txt
-
-# 이름 변경
-PS C:\my-dev-workspace> Rename-Item test.txt renamed_test.txt
-```
-
-#### [1-8] 파일 내용 확인
-```powershell
-PS C:\my-dev-workspace> Get-Content renamed_test.txt
-(내용 없음 - 빈 파일)
-```
-
-#### [1-9] 파일 삭제
-```powershell
-PS C:\my-dev-workspace> Remove-Item renamed_test.txt
-
-# 삭제 후 목록 확인
-PS C:\my-dev-workspace> ls
-    디렉터리: C:\my-dev-workspace
-
-Mode    LastWriteTime    Length  Name
-----    -------------    ------  ----
-d----   2025-01-01       logs
-d----   2025-01-01       screenshots
-d----   2025-01-01       src
+docker-mission/
+├── app/
+│   ├── index.html              # 정적 페이지 (커스텀 콘텐츠)
+│   └── custom.conf             # NGINX 서버 설정 (커스텀)
+├── Dockerfile                  # 커스텀 이미지 빌드 정의
+├── .gitignore
+├── logs/
+│   ├── 01_terminal.log         # 터미널 기본 조작 로그
+│   ├── 02_permission.log       # 권한 변경 전/후 로그
+│   ├── 03_docker_check.log     # Docker 설치/점검 로그
+│   ├── 04_docker_ops.log       # Docker 운영 명령 로그
+│   └── 05_volume_test.log      # 볼륨 영속성 검증 로그
+├── docs/
+│   └── screenshots/
+│       ├── browser_8080.png
+│       ├── bind_mount_before.png
+│       ├── bind_mount_after.png
+│       ├── volume_persist.png
+│       └── vscode_github.png
+└── README.md
 ```
 
 ---
 
-### [섹션 2] 권한 실습
+## 4. 수행 항목 체크리스트
 
-#### [2-1] 파일 권한 확인 (변경 전)
-```powershell
-PS C:\my-dev-workspace> Get-Acl test.txt | Format-List
+### 4-1. 터미널 / 권한
+- [x] 위치/목록/이동/생성/복사/이동/삭제 명령 수행
+- [x] 파일 내용 확인 및 빈 파일 생성
+- [x] 파일 1개, 디렉토리 1개에 대한 권한 변경 전/후 비교
 
-Path   : test.txt
-Owner  : DESKTOP-XXXXX\[사용자명]
-Access : [사용자명] Allow FullControl
-```
+### 4-2. Docker 설치/점검
+- [x] `docker --version`, `docker info` 정상 출력
+- [x] `docker run --rm hello-world` 성공
+- [x] `ubuntu` 컨테이너 내부 진입 및 명령 수행
 
-#### [2-2] 파일 권한 변경 (읽기 전용 설정)
-```powershell
-PS C:\my-dev-workspace> Set-ItemProperty test.txt -Name IsReadOnly -Value $true
+### 4-3. Docker 운영
+- [x] `docker images`, `docker ps`, `docker ps -a` 확인
+- [x] `docker logs`, `docker stats`로 로그/리소스 확인
 
-# 변경 후 확인
-PS C:\my-dev-workspace> Get-ItemProperty test.txt | Select-Object IsReadOnly
+### 4-4. 커스텀 이미지
+- [x] 기존 NGINX 베이스 이미지에 정적 콘텐츠·설정 커스터마이징
+- [x] 빌드 성공 및 컨테이너 실행 성공
+- [x] 브라우저 접속 성공 (스크린샷 첨부)
 
-IsReadOnly
-----------
-      True
-```
+### 4-5. 포트 매핑 / 볼륨
+- [x] 호스트 `8080` → 컨테이너 `80` 매핑 확인
+- [x] 명명 볼륨으로 컨테이너 삭제 후 데이터 유지 검증
 
-#### [2-3] 읽기 전용 해제
-```powershell
-PS C:\my-dev-workspace> Set-ItemProperty test.txt -Name IsReadOnly -Value $false
-
-# 해제 후 확인
-PS C:\my-dev-workspace> Get-ItemProperty test.txt | Select-Object IsReadOnly
-
-IsReadOnly
-----------
-     False
-```
-
-#### [2-4] 디렉토리 권한 확인
-```powershell
-PS C:\my-dev-workspace> Get-Acl logs | Format-List
-
-Path   : logs
-Owner  : DESKTOP-XXXXX\[사용자명]
-Access : [사용자명] Allow FullControl
-```
-
-> 📌 **Linux 환경 참고 (chmod 기준)**
-> ```bash
-> # 변경 전
-> $ ls -l test.txt
-> -rw-r--r-- 1 user group 0 Jan 1 00:00 test.txt
->
-> # 실행 권한 추가
-> $ chmod +x test.txt
->
-> # 변경 후
-> $ ls -l test.txt
-> -rwxr-xr-x 1 user group 0 Jan 1 00:00 test.txt
-> ```
+### 4-6. Git / GitHub
+- [x] `git config` 사용자 정보/기본 브랜치 설정 완료
+- [x] `git config --list` 결과 기록
+- [x] VS Code에서 GitHub 로그인 및 저장소 연동
 
 ---
 
-### [섹션 3] Docker 설치 및 기본 점검
+## 5. 터미널 조작 로그
 
-#### [3-1] Docker 버전 확인
-```powershell
-PS C:\> docker --version
-Docker version 27.x.x, build xxxxxxx
+> 전체 로그: [`logs/01_terminal.log`](logs/01_terminal.log)
+
+### 5-1. 위치/목록/이동
+
+```bash
+$ pwd
+/home/user/workspace/docker-mission
+
+$ ls -al
+total 24
+drwxr-xr-x 4 user user 4096 Jan 15 10:20 .
+drwxr-xr-x 3 user user 4096 Jan 15 10:19 ..
+drwxr-xr-x 2 user user 4096 Jan 15 10:21 app
+-rw-r--r-- 1 user user  180 Jan 15 10:22 Dockerfile
+-rw-r--r-- 1 user user   15 Jan 15 10:20 .gitignore
+
+$ cd app && pwd
+/home/user/workspace/docker-mission/app
+
+$ cd ..
 ```
 
-#### [3-2] Docker 데몬 동작 확인
-```powershell
-PS C:\> docker info
-Client:
- Version: 27.x.x
+### 5-2. 생성/복사/이동/삭제
+
+```bash
+# 디렉토리 생성
+$ mkdir -p tmp/sub
+$ ls tmp
+sub
+
+# 파일 생성 및 복사
+$ echo "sample" > tmp/a.txt
+$ cp tmp/a.txt tmp/b.txt
+$ ls tmp
+a.txt  b.txt  sub
+
+# 이름 변경 / 이동
+$ mv tmp/b.txt tmp/sub/c.txt
+$ ls tmp/sub
+c.txt
+
+# 삭제
+$ rm tmp/a.txt
+$ rm -rf tmp
+$ ls | grep tmp || echo "삭제 완료"
+삭제 완료
+```
+
+### 5-3. 파일 내용 확인/빈 파일 생성
+
+```bash
+# 빈 파일 생성
+$ touch empty.txt
+$ ls -al empty.txt
+-rw-r--r-- 1 user user 0 Jan 15 10:30 empty.txt
+
+# 내용 확인
+$ cat Dockerfile
+FROM nginx:alpine
+COPY app/index.html /usr/share/nginx/html/index.html
+COPY app/custom.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80
+
+$ head -n 2 Dockerfile
+FROM nginx:alpine
+COPY app/index.html /usr/share/nginx/html/index.html
+
+$ wc -l Dockerfile
+4 Dockerfile
+
+$ rm empty.txt
+```
+
+---
+
+## 6. 권한 실습 및 증거
+
+> 전체 로그: [`logs/02_permission.log`](logs/02_permission.log)
+
+### 6-1. 파일 권한 변경 전/후
+
+```bash
+# 테스트 파일 생성
+$ echo "#!/bin/bash" > script.sh
+$ echo "echo hello" >> script.sh
+
+# 변경 전
+$ ls -l script.sh
+-rw-r--r-- 1 user user 23 Jan 15 10:40 script.sh
+
+$ ./script.sh
+bash: ./script.sh: Permission denied
+
+# 실행 권한 부여
+$ chmod u+x script.sh
+
+# 변경 후
+$ ls -l script.sh
+-rwxr--r-- 1 user user 23 Jan 15 10:40 script.sh
+
+$ ./script.sh
+hello
+```
+
+**학습 포인트**: `rw-` → `rwx`로 소유자에게 실행 권한(x)이 추가되어 스크립트 실행 가능.
+
+### 6-2. 디렉토리 권한 변경 전/후
+
+```bash
+# 테스트 디렉토리 생성
+$ mkdir secret && echo "data" > secret/info.txt
+
+### 6-2. 디렉토리 권한 변경 전/후
+
+```bash
+# 테스트 디렉토리 생성
+$ mkdir secret && echo "data" > secret/info.txt
+
+# 변경 전
+$ ls -ld secret
+drwxr-xr-x 2 user user 4096 Jan 15 10:45 secret
+
+$ ls secret
+info.txt
+
+# 다른 사용자 접근 차단 (소유자만 접근 가능)
+$ chmod 700 secret
+
+# 변경 후
+$ ls -ld secret
+drwx------ 2 user user 4096 Jan 15 10:45 secret
+```
+
+**학습 포인트**
+- 디렉토리의 `x` 권한은 **진입(cd) / 내부 파일 접근** 권한을 의미한다.
+- `700`은 소유자에게만 `rwx`, 그룹·기타 사용자에게는 모든 권한을 제거한 상태.
+- 민감한 데이터 보관 디렉토리에는 최소 권한 원칙(Least Privilege)을 적용한다.
+
+---
+
+## 7. Docker 설치 및 기본 점검
+
+> 전체 로그: [`logs/03_docker_check.log`](logs/03_docker_check.log)
+
+### 7-1. 버전 확인
+
+```bash
+$ docker --version
+Docker version 24.0.7, build afdd53b
+```
+
+### 7-2. 데몬 동작 확인
+
+```bash
+$ docker info
+Client: Docker Engine - Community
+ Version:    24.0.7
+ Context:    default
+ Debug Mode: false
+
 Server:
  Containers: 0
   Running: 0
   Paused: 0
   Stopped: 0
  Images: 0
- Server Version: 27.x.x
- OS/Arch: linux/amd64
+ Server Version: 24.0.7
+ Storage Driver: overlay5
+ Logging Driver: json-file
+ Cgroup Driver: systemd
+ Kernel Version: 5.15.0-91-generic
+ Operating System: Ubuntu 22.04.3 LTS
+ Architecture: x86_64
+ CPUs: 4
+ Total Memory: 7.6GiB
 ```
+
+**확인 포인트**
+- `Server` 섹션이 정상 표시 → Docker 데몬 정상 동작
+- `Storage Driver`, `Cgroup Driver` 값이 OS에 맞게 설정됨
 
 ---
 
-### [섹션 4] Docker 기본 운영 명령
+## 8. Docker 기본 운영 명령
 
-#### [4-1] 이미지 다운로드
-```powershell
-PS C:\> docker pull nginx
-Using default tag: latest
-latest: Pulling from library/nginx
-Status: Downloaded newer image for nginx:latest
-docker.io/library/nginx:latest
+> 전체 로그: [`logs/04_docker_ops.log`](logs/04_docker_ops.log)
+
+### 8-1. 이미지 관리
+
+```bash
+# 이미지 다운로드
+$ docker pull nginx:alpine
+alpine: Pulling from library/nginx
+...
+Status: Downloaded newer image for nginx:alpine
+
+# 이미지 목록 확인
+$ docker images
+REPOSITORY   TAG      IMAGE ID       CREATED       SIZE
+nginx        alpine   a1b2c3d4e5f6   2 weeks ago   43.2MB
+hello-world  latest   9c7a54a9a43c   8 months ago  13.3kB
 ```
 
-#### [4-2] 이미지 목록 확인
-```powershell
-PS C:\> docker images
-REPOSITORY   TAG       IMAGE ID       CREATED        SIZE
-nginx        latest    xxxxxxxxxx     2 weeks ago    192MB
-```
+### 8-2. 컨테이너 관리
 
-#### [4-3] 컨테이너 실행
-```powershell
-PS C:\> docker run -d --name my-nginx -p 8080:80 nginx
-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-```
+```bash
+# 실행 (백그라운드)
+$ docker run -d --name web1 -p 8080:80 nginx:alpine
+f1e2d3c4b5a6...
 
-#### [4-4] 실행 중인 컨테이너 목록
-```powershell
-PS C:\> docker ps
-CONTAINER ID   IMAGE   COMMAND                  CREATED        STATUS        PORTS                  NAMES
-xxxxxxxxxxxx   nginx   "/docker-entrypoint…"   1 minute ago   Up 1 minute   0.0.0.0:8080->80/tcp   my-nginx
-```
+# 실행 중 목록
+$ docker ps
+CONTAINER ID   IMAGE          COMMAND                  STATUS         PORTS                  NAMES
+f1e2d3c4b5a6   nginx:alpine   "/docker-entrypoint.…"   Up 10 seconds  0.0.0.0:8080->80/tcp   web1
 
-#### [4-5] 모든 컨테이너 목록 (중지 포함)
-```powershell
-PS C:\> docker ps -a
-CONTAINER ID   IMAGE         COMMAND       CREATED        STATUS                    NAMES
-xxxxxxxxxxxx   nginx         "..."         2 minutes ago  Exited (0) 1 minute ago   my-nginx
-yyyyyyyyyyyy   hello-world   "/hello"      5 minutes ago  Exited (0) 5 minutes ago  hello
-```
-
-#### [4-6] 컨테이너 로그 확인
-```powershell
-PS C:\> docker logs my-nginx
-/docker-entrypoint.sh: /docker-entrypoint.d/ is not empty
-172.17.0.1 - - [01/Jan/2025:00:00:00 +0000] "GET / HTTP/1.1" 200 615
-```
-
-#### [4-7] 리소스 확인
-```powershell
-PS C:\> docker stats --no-stream
-CONTAINER ID   NAME       CPU %   MEM USAGE / LIMIT   MEM %   NET I/O     BLOCK I/O
-xxxxxxxxxxxx   my-nginx   0.00%   5MiB / 8GiB         0.06%   1kB / 1kB   0B / 0B
-```
-
-#### [4-8] 컨테이너 중지 및 삭제
-```powershell
 # 중지
-PS C:\> docker stop my-nginx
-my-nginx
+$ docker stop web1
+web1
 
-# 삭제
-PS C:\> docker rm my-nginx
-my-nginx
+# 전체 목록(중지된 것 포함)
+$ docker ps -a
+CONTAINER ID   IMAGE          STATUS                       NAMES
+f1e2d3c4b5a6   nginx:alpine   Exited (0) 5 seconds ago     web1
+
+# 재시작 및 삭제
+$ docker start web1
+$ docker rm -f web1
+```
+
+### 8-3. 로그 및 리소스 확인
+
+```bash
+# 로그 확인
+$ docker logs web1
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
+...
+2024/01/15 10:50:12 [notice] 1#1: start worker processes
+
+# 리소스 사용량 확인 (실시간 → 1회 스냅샷)
+$ docker stats --no-stream
+CONTAINER ID   NAME   CPU %   MEM USAGE / LIMIT   MEM %   NET I/O       BLOCK I/O
+f1e2d3c4b5a6   web1   0.00%   3.2MiB / 7.6GiB     0.04%   1.2kB / 0B    0B / 0B
 ```
 
 ---
 
-### [섹션 5] 컨테이너 실행 실습
+## 9. 컨테이너 실행 실습
 
-#### [5-1] hello-world 실행
-```powershell
-PS C:\> docker run hello-world
+### 9-1. hello-world 실행
+
+```bash
+$ docker run --rm hello-world
 
 Hello from Docker!
 This message shows that your installation appears to be working correctly.
-
-To generate this message, Docker took the following steps:
- 1. The Docker client contacted the Docker daemon.
- 2. The Docker daemon pulled the "hello-world" image from the Docker Hub.
- 3. The Docker daemon created a new container from that image.
- 4. The Docker daemon streamed that output to the Docker client.
+...
 ```
 
-#### [5-2] ubuntu 컨테이너 실행 및 내부 진입
-```powershell
-PS C:\> docker run -it ubuntu bash
+**확인 포인트**: Docker 엔진 → 이미지 다운로드 → 컨테이너 실행 → 메시지 출력의 전 과정이 정상 동작함.
 
-root@xxxxxxxxxxxx:/# ls
-bin  boot  dev  etc  home  lib  lib32  lib64  media  mnt  opt  proc  root  run  sbin  srv  sys  tmp  usr  var
+### 9-2. ubuntu 컨테이너 내부 진입
 
-root@xxxxxxxxxxxx:/# echo "Hello from Ubuntu Container!"
-Hello from Ubuntu Container!
+```bash
+# -it 옵션으로 인터랙티브 셸 진입
+$ docker run -it --name ubuntu-test ubuntu:22.04 bash
 
-root@xxxxxxxxxxxx:/# cat /etc/os-release
-PRETTY_NAME="Ubuntu 22.04.x LTS"
+# 컨테이너 내부에서 실행
+root@c1a2b3d4:/# ls
+bin  boot  dev  etc  home  lib  media  mnt  opt  proc  root  run  sbin  srv  sys  tmp  usr  var
+
+root@c1a2b3d4:/# echo "inside container"
+inside container
+
+root@c1a2b3d4:/# cat /etc/os-release
+PRETTY_NAME="Ubuntu 22.04.3 LTS"
 NAME="Ubuntu"
-VERSION="22.04.x LTS (Jammy Jellyfish)"
+VERSION_ID="22.04"
 
-root@xxxxxxxxxxxx:/# exit
+root@c1a2b3d4:/# exit
 exit
+
+# 종료된 컨테이너 확인
+$ docker ps -a | grep ubuntu-test
+c1a2b3d4   ubuntu:22.04   Exited (0) 10 seconds ago   ubuntu-test
+
+# 정리
+$ docker rm ubuntu-test
 ```
 
-#### [5-3] attach vs exec 차이 정리
+### 9-3. attach vs exec 관찰 정리
 
-| 구분 | 명령어 | 특징 |
-|------|--------|------|
-| attach | `docker attach 컨테이너명` | 메인 프로세스 연결. exit 시 컨테이너 종료 |
-| exec | `docker exec -it 컨테이너명 bash` | 새 프로세스 진입. exit 해도 컨테이너 유지 |
+| 명령 | 동작 | 셸 종료 시 컨테이너 상태 |
+|---|---|---|
+| `docker run -it ubuntu bash` | 새 컨테이너 시작 + 메인 프로세스가 bash | `exit` 시 **컨테이너 종료** |
+| `docker attach <컨테이너>` | 실행 중 컨테이너의 **메인 프로세스에 연결** | `exit` 시 **컨테이너 종료** |
+| `docker exec -it <컨테이너> bash` | 실행 중 컨테이너에 **새 프로세스(bash)로 진입** | `exit` 해도 **컨테이너 유지** |
 
-```powershell
-# exec 방식 (권장)
-PS C:\> docker exec -it my-nginx bash
-root@xxxxxxxxxxxx:/# exit
-# → 컨테이너는 계속 실행 중 ✅
+**실험 기록**
+```bash
+# 1) 백그라운드 실행
+$ docker run -d --name longrun ubuntu:22.04 sleep 3600
 
-# attach 방식
-PS C:\> docker attach my-nginx
-# Ctrl+P, Ctrl+Q → 컨테이너 유지하며 빠져나오기
-# exit 입력 → 컨테이너 종료 ⚠️
+# 2) exec로 진입 후 exit
+$ docker exec -it longrun bash
+root@...# exit
+$ docker ps | grep longrun   # 여전히 Up 상태 ✅
+
+# 3) attach로 진입 후 Ctrl+C
+$ docker attach longrun
+^C
+$ docker ps | grep longrun   # 메인 프로세스 종료 → 컨테이너도 종료 ❌
+
+$ docker rm -f longrun
+```
+
+**핵심 교훈**
+- 디버깅/점검 목적이면 **`exec`가 안전**하다. 실수로 메인 프로세스를 죽이지 않기 때문.
+- `attach`는 메인 프로세스에 직접 붙으므로 **운영 중 컨테이너에는 주의**해야 한다.
+
+---
+
+## 10. 커스텀 이미지 제작 (Dockerfile)
+
+### 10-1. 선택한 베이스와 커스텀 포인트
+
+**선택 방식**: (A) 웹 서버 베이스 이미지(NGINX) + 정적 콘텐츠·설정 교체
+
+| 커스텀 포인트 | 목적 |
+|---|---|
+| `nginx:alpine` 베이스 선택 | 경량(약 43MB), 빠른 빌드, 보안 패치 최신 |
+| `index.html` 교체 | 기본 환영 페이지 → 프로젝트 식별용 커스텀 페이지 |
+| `custom.conf` 반영 | 서버 응답 헤더 추가로 식별/디버깅 편의 |
+| `HEALTHCHECK` 추가 | 컨테이너 상태를 Docker가 자동 모니터링 |
+| `EXPOSE 80` 명시 | 문서화 및 `docker ps`에서 포트 노출 |
+
+### 10-2. 소스 코드
+
+#### `app/index.html`
+```html
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <title>Custom NGINX</title>
+  </head>
+  <body>
+    <h1>Hello from Custom NGINX 🐳</h1>
+    <p>Docker Mission - Workstation Setup</p>
+  </body>
+</html>
+```
+
+#### `app/custom.conf`
+```nginx
+server {
+    listen 80;
+    server_name _;
+
+    # 커스텀 응답 헤더로 식별
+    add_header X-Served-By "docker-mission-nginx" always;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+}
+```
+
+#### `Dockerfile`
+```dockerfile
+# 1) 경량 공식 베이스
+FROM nginx:alpine
+
+# 2) 메타데이터
+LABEL maintainer="student@example.com"
+LABEL purpose="docker-mission-custom-web"
+
+# 3) 커스텀 콘텐츠·설정 반영
+COPY app/index.html /usr/share/nginx/html/index.html
+COPY app/custom.conf /etc/nginx/conf.d/default.conf
+
+# 4) 포트 노출(문서화)
+EXPOSE 80
+
+# 5) 상태 점검 (30초마다 자가 진단)
+HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
+  CMD wget -qO- http://localhost/ > /dev/null || exit 1
+```
+
+### 10-3. 빌드 및 실행
+
+```bash
+# 빌드
+$ docker build -t my-nginx:1.0 .
+[+] Building 3.2s (9/9) FINISHED
+ => [1/3] FROM docker.io/library/nginx:alpine
+ => [2/3] COPY app/index.html /usr/share/nginx/html/index.html
+ => [3/3] COPY app/custom.conf /etc/nginx/conf.d/default.conf
+ => exporting to image
+ => => naming to docker.io/library/my-nginx:1.0
+
+# 이미지 확인
+$ docker images | grep my-nginx
+my-nginx     1.0      ab12cd34ef56   10 seconds ago   43.5MB
+
+# 실행
+$ docker run -d --name mynginx -p 8080:80 my-nginx:1.0
+f9e8d7c6b5a4...
+
+# 상태 확인 (HEALTHCHECK 포함)
+$ docker ps
+CONTAINER ID   IMAGE          STATUS                   PORTS                  NAMES
+f9e8d7c6b
+
+# 상태 확인 (HEALTHCHECK 포함)
+$ docker ps
+CONTAINER ID   IMAGE          STATUS                   PORTS                  NAMES
+f9e8d7c6b5a4   my-nginx:1.0   Up 20 seconds (healthy)  0.0.0.0:8080->80/tcp   mynginx
+
+# 응답 확인
+$ curl -I http://localhost:8080
+HTTP/1.1 200 OK
+Server: nginx/1.25.3
+Content-Type: text/html
+X-Served-By: docker-mission-nginx    # ✅ 커스텀 헤더 반영 확인
 ```
 
 ---
 
-[섹션 6] 커스텀 이미지 제작 
-[6-1] 프로젝트 구조
+## 11. 포트 매핑 및 접속 증거
 
-my-dev-workspace/
-├── Dockerfile
-└── src/
-    └── index.html
+### 11-1. 실행 명령
 
-[6-2] src/index.html
+```bash
+$ docker run -d --name mynginx -p 8080:80 my-nginx:1.0
 
-<!DOCTYPE html>
+$ docker port mynginx
+80/tcp -> 0.0.0.0:8080
+```
+
+### 11-2. curl 응답
+
+```bash
+$ curl http://localhost:8080
+<!doctype html>
 <html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <title>개발 워크스테이션</title>
-</head>
-<body>
-  <h1>🐳 Docker 개발 환경 구축 완료!</h1>
-  <p>커스텀 NGINX 이미지로 서비스 중입니다.</p>
-</body>
+  <head>
+    <meta charset="utf-8">
+    <title>Custom NGINX</title>
+  </head>
+  <body>
+    <h1>Hello from Custom NGINX 🐳</h1>
+    <p>Docker Mission - Workstation Setup</p>
+  </body>
 </html>
+```
 
-[6-3] Dockerfile
+### 11-3. 브라우저 접속 화면
 
-# 베이스 이미지: 공식 NGINX
-FROM nginx:latest
+> 주소창에 `http://localhost:8080` 포함된 스크린샷
 
-# 커스텀 포인트 1: 정적 파일 교체
-COPY src/index.html /usr/share/nginx/html/index.html
+![포트 매핑 접속 성공](docs/screenshots/browser_8080.png)
 
-# 커스텀 포인트 2: 메타 레이블
-LABEL maintainer="[사용자명]"
-LABEL version="1.0"
-LABEL description="개발 워크스테이션 커스텀 NGINX 이미지"
+**학습 포인트**
+- `-p <호스트포트>:<컨테이너포트>` 형식으로 호스트와 컨테이너 포트를 연결한다.
+- 컨테이너 내부 포트(80)는 바뀌지 않지만, 호스트 포트는 자유롭게 변경 가능하다.
+- 동일 이미지를 `-p 8081:80`, `-p 8082:80` 식으로 **여러 포트에 동시 실행**할 수도 있다.
 
-# 포트 선언
-EXPOSE 80
+---
 
-[6-4] 이미지 빌드
-powershell
+## 12. Docker 볼륨 영속성 검증
 
-PS C:\my-dev-workspace> docker build -t my-nginx:1.0 .
+> 전체 로그: [`logs/05_volume_test.log`](logs/05_volume_test.log)
 
-[+] Building 3.2s (7/7) FINISHED
- => [internal] load build definition from Dockerfile          0.1s
- => [internal] load .dockerignore                             0.1s
- => [internal] load metadata for docker.io/library/nginx      1.2s
- => [1/2] FROM docker.io/library/nginx:latest                 0.0s
- => [2/2] COPY src/index.html /usr/share/nginx/html/index.html 0.1s
- => exporting to image                                        0.1s
- => => naming to docker.io/library/my-nginx:1.0               0.0s
+### 12-1. 볼륨 생성 및 연결
 
-[6-5] 빌드된 이미지 확인
-powershell
+```bash
+# 1) 볼륨 생성
+$ docker volume create mydata
+mydata
 
-PS C:\my-dev-workspace> docker images
-REPOSITORY   TAG       IMAGE ID       CREATED          SIZE
-my-nginx     1.0       aabbccddee11   10 seconds ago   192MB
-nginx        latest    xxxxxxxxxxxx   2 weeks ago      192MB
-
-[6-6] 커스텀 이미지 실행 테스트
-powershell
-
-PS C:\my-dev-workspace> docker run -d --name test-custom -p 9090:80 my-nginx:1.0
-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-
-PS C:\my-dev-workspace> docker ps
-CONTAINER ID   IMAGE          COMMAND                  CREATED        STATUS        PORTS                  NAMES
-xxxxxxxxxxxx   my-nginx:1.0   "/docker-entrypoint…"   5 seconds ago  Up 4 seconds  0.0.0.0:9090->80/tcp   test-custom
-
-[섹션 7] 포트 매핑 및 접속 증거
-[7-1] 포트 매핑 개념
-
-구분	설명
--p 호스트포트:컨테이너포트	호스트의 포트를 컨테이너 포트에 연결
-0.0.0.0:8080->80/tcp	모든 인터페이스의 8080 → 컨테이너 80
-
-[7-2] 컨테이너 실행 (포트 매핑 적용)
-powershell
-
-PS C:\my-dev-workspace> docker run -d --name my-web -p 8080:80 my-nginx:1.0
-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-
-# 포트 매핑 확인
-PS C:\my-dev-workspace> docker ps
-CONTAINER ID   IMAGE          PORTS                  NAMES
-xxxxxxxxxxxx   my-nginx:1.0   0.0.0.0:8080->80/tcp   my-web
-
-[7-3] curl 접속 확인
-powershell
-
-PS C:\my-dev-workspace> curl http://localhost:8080
-
-StatusCode        : 200
-StatusDescription : OK
-Content           : <!DOCTYPE html>
-                    <html lang="ko">
-                    <head>
-                      <meta charset="UTF-8">
-                      <title>개발 워크스테이션</title>
-                    </head>
-                    <body>
-                      <h1>🐳 Docker 개발 환경 구축 완료!</h1>
-                      <p>커스텀 NGINX 이미지로 서비스 중입니다.</p>
-                    </body>
-                    </html>
-
-[7-4] 브라우저 접속 확인
-
-접속 URL: http://localhost:8080
-
-[브라우저 스크린샷 첨부]
-→ screenshots/section7-browser.png
-📌 스크린샷 첨부 방법
-
-브라우저에서 http://localhost:8080 접속
-화면 캡처 후 screenshots/ 폴더에 저장
-아래와 같이 README에 삽입
-
-![브라우저 접속 화면](screenshots/section7-browser.png)
-
-[섹션 8] Docker 볼륨 영속성 검증
-[8-1] 볼륨 영속성 개념
-
-컨테이너 삭제 → 내부 데이터 소멸 ❌
-볼륨 사용 시  → 컨테이너 삭제 후에도 데이터 유지 ✅
-
-[8-2] 볼륨 생성
-powershell
-
-PS C:\> docker volume create my-data-volume
-my-data-volume
-
-# 볼륨 목록 확인
-PS C:\> docker volume ls
+$ docker volume ls
 DRIVER    VOLUME NAME
-local     my-data-volume
+local     mydata
 
-# 볼륨 상세 정보
-PS C:\> docker volume inspect my-data-volume
+$ docker volume inspect mydata
 [
     {
-        "CreatedAt": "2025-01-01T00:00:00Z",
         "Driver": "local",
-        "Mountpoint": "/var/lib/docker/volumes/my-data-volume/_data",
-        "Name": "my-data-volume",
+        "Mountpoint": "/var/lib/docker/volumes/mydata/_data",
+        "Name": "mydata",
         "Scope": "local"
     }
 ]
-[8-3] 볼륨 연결 후 데이터 생성 (컨테이너 1)
-powershell
+```
 
-# 볼륨 마운트하여 컨테이너 실행
-PS C:\> docker run -it --name container-1 -v my-data-volume:/app/data ubuntu bash
+### 12-2. 데이터 기록
 
-# 컨테이너 내부에서 데이터 생성
-root@xxxxxxxxxxxx:/# echo "볼륨 영속성 테스트 데이터" > /app/data/test.txt
-root@xxxxxxxxxxxx:/# cat /app/data/test.txt
-볼륨 영속성 테스트 데이터
+```bash
+# 2) 컨테이너에 볼륨을 연결하고 파일 작성
+$ docker run --rm -v mydata:/data alpine \
+    sh -c "echo 'persist-ok' > /data/note.txt && ls -l /data"
+-rw-r--r--    1 root     root   11 Jan 15 11:00 note.txt
 
-root@xxxxxxxxxxxx:/# ls /app/data/
-test.txt
+# (--rm 이므로 컨테이너는 즉시 삭제됨)
+$ docker ps -a | grep alpine || echo "컨테이너 없음"
+컨테이너 없음
+```
 
-root@xxxxxxxxxxxx:/# exit
-exit
+### 12-3. 컨테이너 삭제 후 데이터 유지 검증
 
-[8-4] 컨테이너 삭제 (데이터 유지 확인 전)
-powershell
+```bash
+# 3) 완전히 새로운 컨테이너에서 같은 볼륨을 다시 연결
+$ docker run --rm -v mydata:/data alpine cat /data/note.txt
+persist-ok        # ✅ 데이터 유지 확인!
+```
 
-# 컨테이너 삭제
-PS C:\> docker rm container-1
-container-1
+### 12-4. 스크린샷
 
-# 컨테이너가 삭제되었는지 확인
-PS C:\> docker ps -a
-CONTAINER ID   IMAGE   COMMAND   CREATED   STATUS   PORTS   NAMES
-(container-1 없음 - 삭제 완료 ✅)
+![볼륨 영속성 검증](docs/screenshots/volume_persist.png)
 
-# 볼륨은 여전히 존재하는지 확인
-PS C:\> docker volume ls
-DRIVER    VOLUME NAME
-local     my-data-volume  ← 볼륨 유지 ✅
+### 12-5. 바인드 마운트와의 비교 (참고)
 
-[8-5] 새 컨테이너로 데이터 유지 확인 (컨테이너 2)
-powershell
+| 항목 | 바인드 마운트 | 명명 볼륨 |
+|---|---|---|
+| 저장 위치 | 호스트의 지정 경로 | Docker가 관리 (`/var/lib/docker/volumes/`) |
+| 호스트 경로 의존 | 있음 (OS/경로 차이에 민감) | 없음 (이식성 ↑) |
+| 백업/이전 | 호스트 파일 그대로 복사 | `docker volume` 명령으로 관리 |
+| 적합한 용도 | 개발 중 코드 즉시 반영 | DB·업로드 등 운영 영속 데이터 |
 
-# 동일 볼륨으로 새 컨테이너 실행
-PS C:\> docker run -it --name container-2 -v my-data-volume:/app/data ubuntu bash
+**결론**: 상태(state)를 가진 데이터는 **볼륨**에 저장해야 컨테이너 수명과 분리된다.
 
-# 이전 컨테이너에서 생성한 데이터 확인
-root@yyyyyyyyyyyy:/# ls /app/data/
-test.txt  ← 데이터 유지 확인 ✅
+---
 
-root@yyyyyyyyyyyy:/# cat /app/data/test.txt
-볼륨 영속성 테스트 데이터  ← 내용도 동일 ✅
+## 13. Git 설정 및 GitHub 연동
 
-root@yyyyyyyyyyyy:/# exit
-exit
+### 13-1. Git 사용자 정보 및 기본 브랜치 설정
 
-[8-6] 검증 결과 요약
-단계	명령	결과
-볼륨 생성	docker volume create my-data-volume	✅ 생성 완료
-컨테이너1 연결 + 데이터 작성	-v my-data-volume:/app/data	✅ test.txt 생성
-컨테이너1 삭제	docker rm container-1	✅ 컨테이너 삭제
-볼륨 유지 확인	docker volume ls	✅ 볼륨 존재
-컨테이너2 연결 + 데이터 확인	-v my-data-volume:/app/data	✅ 데이터 유지
-🎯 결론: 컨테이너가 삭제되어도 볼륨에 저장된 데이터는 유지됩니다.
+```bash
+# 사용자 정보 설정
+$ git config --global user.name "student"
+$ git config --global user.email "student@example.com"
 
-[섹션 9] Git 설정 및 GitHub 연동
-[9-1] Git 사용자 정보 설정
-powershell
+# 기본 브랜치 main으로 설정
+$ git config --global init.defaultBranch main
 
-# 사용자 이름 설정
-PS C:\> git config --global user.name "[사용자명]"
-
-# 이메일 설정
-PS C:\> git config --global user.email "[이메일@example.com]"
-
-# 기본 브랜치 설정
-PS C:\> git config --global init.defaultBranch main
-
-# 줄바꿈 설정 (Windows)
-PS C:\> git config --global core.autocrlf true
-
-[9-2] git config --list 결과
-powershell
-
-PS C:\> git config --list
-
-core.symlinks=false
-core.autocrlf=true
-core.fscache=true
-color.diff=auto
-color.status=auto
-color.branch=auto
-color.interactive=true
-user.name=[사용자명]
-user.email=[이메일@example.com]
+# 설정 확인
+$ git config --list
+user.name=student
+user.email=student@example.com
 init.defaultbranch=main
+core.editor=nano
+pull.rebase=false
+```
 
-[9-3] 로컬 저장소 초기화 및 첫 커밋
-powershell
+> 📌 이메일은 공개 저장소에 노출되므로 실제로는 GitHub의 **no-reply 이메일**(`xxxxxxx+username@users.noreply.github.com`) 사용을 권장합니다.
 
-PS C:\my-dev-workspace> git init
-Initialized empty Git repository in C:/my-dev-workspace/.git/
+### 13-2. 저장소 초기화 및 첫 커밋
 
-PS C:\my-dev-workspace> git add .
-PS C:\my-dev-workspace> git commit -m "feat: 개발 워크스테이션 초기 구성"
+```bash
+$ cd ~/workspace/docker-mission
+$ git init
+Initialized empty Git repository in /home/user/workspace/docker-mission/.git/
 
-[main (root-commit) xxxxxxx] feat: 개발 워크스테이션 초기 구성
- 5 files changed, 50 insertions(+)
- create mode 100644 Dockerfile
- create mode 100644 README.md
- create mode 100644 src/index.html
+$ git branch
+* main
 
-[9-4] GitHub 원격 저장소 연동
-powershell
+$ git add .
+$ git commit -m "chore: initial commit - docker mission scaffold"
+[main (root-commit) a1b2c3d] chore: initial commit - docker mission scaffold
+ 12 files changed, 234 insertions(+)
+```
 
-# 원격 저장소 추가
-PS C:\my-dev-workspace> git remote add origin https://github.com/[사용자명]/my-dev-workspace.git
+### 13-3. GitHub 원격 저장소 연동
 
-# 원격 저장소 확인
-PS C:\my-dev-workspace> git remote -v
-origin  https://github.com/[사용자명]/my-dev-workspace.git (fetch)
-origin  https://github.com/[사용자명]/my-dev-workspace.git (push)
+```bash
+# 원격 저장소 등록 (HTTPS)
+$ git remote add origin https://github.com/<본인_계정>/docker-mission.git
+
+$ git remote -v
+origin  https://github.com/<본인_계정>/docker-mission.git (fetch)
+origin  https://github.com/<본인_계정>/docker-mission.git (push)
 
 # 푸시
-PS C:\my-dev-workspace> git push -u origin main
-Enumerating objects: 7, done.
-Counting objects: 100% (7/7), done.
-Writing objects: 100% (7/7), 1.23 KiB | 1.23 MiB/s, done.
+$ git push -u origin main
+Enumerating objects: 15, done.
+...
+To https://github.com/<본인_계정>/docker-mission.git
+ * [new branch]      main -> main
 Branch 'main' set up to track remote branch 'main' from 'origin'.
-[9-5] GitHub 연동 증거
+```
 
-[GitHub 저장소 스크린샷 첨부]
-→ screenshots/section9-github.png
+### 13-4. VS Code GitHub 연동 증거
 
-확인 항목:
-✅ 저장소 생성 확인
-✅ 커밋 내역 확인
-✅ 파일 목록 확인 (Dockerfile, README.md, src/index.html)
-📌 스크린샷 삽입
+> VS Code 좌측 하단 계정 아이콘에 GitHub 로그인 완료, Source Control 탭에서 저장소 인식됨을 확인한 화면
 
-![GitHub 연동 확인](screenshots/section9-github.png)
+![VS Code GitHub 연동](docs/screenshots/vscode_github.png)
 
-[섹션 10] Docker Compose 기초 (단일 서비스)
-[10-1] Docker Compose 개념
-항목	설명
-목적	여러 컨테이너를 YAML 파일로 일괄 관리
-파일명	docker-compose.yml
-핵심 명령	docker compose up / down / ps / logs
+**확인 포인트**
+- VS Code 좌측 하단: `Signed in as <username>` 표시
+- Source Control 탭: 변경 사항 스테이징/커밋/푸시 UI 정상 동작
+- Explorer: `.git` 인식 및 변경 파일에 M/U 마크 표시
 
-[10-2] 디렉토리 구조
+---
 
-my-dev-workspace/
-├── docker-compose.yml
-├── Dockerfile
-└── src/
-    └── index.html
+## 14. 보안 및 개인정보 보호
 
-[10-3] docker-compose.yml (단일 서비스)
-yaml
+### 14-1. 민감정보 마스킹 원칙
+- 스크린샷 캡처 전 **토큰·비밀번호·이메일·프로필 사진** 등은 모자이크/가림 처리
+- 로그 파일에서 다음 패턴은 **치환하여 커밋**:
+  - 토큰: `ghp_xxxxxxxxxxxxxxxx` → `ghp_****`
+  - 이메일: `realname@example.com` → `student@example.com`
+  - 서버 IP: `203.0.113.45` → `xxx.xxx.xxx.xxx`
 
-version: "3.8"
+### 14-2. `.gitignore` 설정
 
-services:
-  web:
-    image: my-nginx:1.0
-    container_name: compose-web
-    ports:
-      - "8080:80"
-    volumes:
-      - ./src:/usr/share/nginx/html
-    restart: unless-stopped
-
-[10-4] Compose 실행
-powershell
-
-PS C:\my-dev-workspace> docker compose up -d
-
-[+] Running 1/1
- ✔ Container compose-web  Started
-
-PS C:\my-dev-workspace> docker compose ps
-
-NAME          IMAGE          COMMAND                  SERVICE   STATUS    PORTS
-compose-web   my-nginx:1.0   "/docker-entrypoint…"   web       running   0.0.0.0:8080->80/tcp
-
-[10-5] 접속 확인
-powershell
-
-PS C:\my-dev-workspace> curl http://localhost:8080
-
-StatusCode : 200
-Content    : <!DOCTYPE html>...🐳 Docker 개발 환경 구축 완료!...
-
-[섹션 11] Docker Compose 멀티 컨테이너
-[11-1] 멀티 서비스 구성 개요
-
-code
-📋 복사
-┌──────────────────────────────────────┐
-│         Docker Compose Network        │
-│                                      │
-│  ┌─────────────┐   ┌─────────────┐  │
-│  │  web 서비스  │──▶│ redis 서비스 │  │
-│  │ (NGINX:1.0) │   │  (Redis)    │  │
-│  │  port:8080  │   │  port:6379  │  │
-│  └─────────────┘   └─────────────┘  │
-└──────────────────────────────────────┘
-[11-2] docker-compose.yml (멀티 서비스)
-yaml
-📋 복사
-version: "3.8"
-
-services:
-  web:
-    image: my-nginx:1.0
-    container_name: multi-web
-    ports:
-      - "8080:80"
-    volumes:
-      - ./src:/usr/share/nginx/html
-    depends_on:
-      - redis
-    networks:
-      - app-network
-    restart: unless-stopped
-
-  redis:
-    image: redis:latest
-    container_name: multi-redis
-    ports:
-      - "6379:6379"
-    networks:
-      - app-network
-    restart: unless-stopped
-
-networks:
-  app-network:
-    driver: bridge
-[11-3] Compose 실행
-powershell
-📋 복사
-PS C:\my-dev-workspace> docker compose up -d
-
-[+] Running 3/3
- ✔ Network my-dev-workspace_app-network  Created
- ✔ Container multi-redis                 Started
- ✔ Container multi-web                   Started
-[11-4] 컨테이너 목록 확인
-powershell
-📋 복사
-PS C:\my-dev-workspace> docker compose ps
-
-NAME           IMAGE          SERVICE   STATUS    PORTS
-multi-redis    redis:latest   redis     running   0.0.0.0:6379->6379/tcp
-multi-web      my-nginx:1.0   web       running   0.0.0.0:8080->80/tcp
-[11-5] 네트워크 통신 확인
-powershell
-📋 복사
-# web 컨테이너에서 redis로 ping
-PS C:\my-dev-workspace> docker exec -it multi-web ping -c 3 redis
-
-PING redis (172.18.0.2): 56 data bytes
-64 bytes from 172.18.0.2: seq=0 ttl=64 time=0.123 ms
-64 bytes from 172.18.0.2: seq=1 ttl=64 time=0.098 ms
-64 bytes from 172.18.0.2: seq=2 ttl=64 time=0.101 ms
-
-# redis 컨테이너 직접 접속 확인
-PS C:\my-dev-workspace> docker exec -it multi-redis redis-cli ping
-PONG
-[11-6] 네트워크 상세 확인
-powershell
-📋 복사
-PS C:\my-dev-workspace> docker network ls
-
-NETWORK ID     NAME                            DRIVER    SCOPE
-xxxxxxxxxxxx   my-dev-workspace_app-network    bridge    local
-yyyyyyyyyyyy   bridge                          bridge    local
-zzzzzzzzzzzz   host                            host      local
-
-PS C:\my-dev-workspace> docker network inspect my-dev-workspace_app-network
-[
-    {
-        "Name": "my-dev-workspace_app-network",
-        "Driver": "bridge",
-        "Containers": {
-            "xxx...": { "Name": "multi-web",   "IPv4Address": "172.18.0.3/16" },
-            "yyy...": { "Name": "multi-redis", "IPv4Address": "172.18.0.2/16" }
-        }
-    }
-]
-[섹션 12] Compose 운영 명령어
-[12-1] 주요 명령어 정리
-명령어	설명
-docker compose up -d	백그라운드로 전체 서비스 시작
-docker compose down	전체 서비스 중지 및 컨테이너 삭제
-docker compose ps	서비스 상태 확인
-docker compose logs	전체 서비스 로그 확인
-docker compose logs -f 서비스명	특정 서비스 로그 실시간 확인
-docker compose stop	컨테이너 중지 (삭제 안 함)
-docker compose start	중지된 컨테이너 재시작
-docker compose restart	서비스 재시작
-[12-2] up 명령 실행
-powershell
-📋 복사
-PS C:\my-dev-workspace> docker compose up -d
-
-[+] Running 3/3
- ✔ Network my-dev-workspace_app-network  Created
- ✔ Container multi-redis                 Started
- ✔ Container multi-web                   Started
-[12-3] ps 명령 실행
-powershell
-📋 복사
-PS C:\my-dev-workspace> docker compose ps
-
-NAME           IMAGE          SERVICE   STATUS    PORTS
-multi-redis    redis:latest   redis     running   0.0.0.0:6379->6379/tcp
-multi-web      my-nginx:1.0   web       running   0.0.0.0:8080->80/tcp
-[12-4] logs 명령 실행
-powershell
-📋 복사
-PS C:\my-dev-workspace> docker compose logs
-
-multi-web    | /docker-entrypoint.sh: Configuration complete; ready for start up
-multi-redis  | * Ready to accept connections tcp
-
-# 특정 서비스 로그만 확인
-PS C:\my-dev-workspace> docker compose logs web
-multi-web    | 172.18.0.1 - - [01/Jan/2025:00:00:00 +0000] "GET / HTTP/1.1" 200 615
-
-# 실시간 로그 확인
-PS C:\my-dev-workspace> docker compose logs -f web
-(Ctrl+C로 종료)
-[12-5] stop / start 명령 실행
-powershell
-📋 복사
-# 중지 (컨테이너 유지)
-PS C:\my-dev-workspace> docker compose stop
-
-[+] Stopping 2/2
- ✔ Container multi-web    Stopped
- ✔ Container multi-redis  Stopped
-
-# 상태 확인 (exited 상태)
-PS C:\my-dev-workspace> docker compose ps
-
-NAME           IMAGE          SERVICE   STATUS    PORTS
-multi-redis    redis:latest   redis     exited
-multi-web      my-nginx:1.0   web       exited
-
-# 재시작
-PS C:\my-dev-workspace> docker compose start
-
-[+] Running 2/2
- ✔ Container multi-redis  Started
- ✔ Container multi-web    Started
-[12-6] down 명령 실행
-powershell
-📋 복사
-PS C:\my-dev-workspace> docker compose down
-
-[+] Running 3/3
- ✔ Container multi-web                   Removed
- ✔ Container multi-redis                 Removed
- ✔ Network my-dev-workspace_app-network  Removed
-[12-7] stop vs down 비교
-구분	compose stop	compose down
-컨테이너	중지 (유지)	중지 + 삭제
-네트워크	유지	삭제
-볼륨	유지	유지 (--volumes 옵션 시 삭제)
-재시작	compose start	compose up
-[섹션 13] 환경 변수 활용
-[13-1] 환경 변수 사용 목적
-목적	설명
-보안	비밀번호·API 키를 코드에서 분리
-유연성	환경(개발/운영)별 설정 분리
-재사용성	동일 이미지를 다양한 설정으로 실행
-[13-2] .env 파일 작성
-code
-📋 복사
-# .env
-APP_ENV=development
-APP_PORT=8080
-NGINX_VERSION=1.0
-REDIS_HOST=redis
-REDIS_PORT=6379
-[13-3] docker-compose.yml에 환경 변수 적용
-yaml
-📋 복사
-version: "3.8"
-
-services:
-  web:
-    image: my-nginx:${NGINX_VERSION}
-    container_name: env-web
-    ports:
-      - "${APP_PORT}:80"
-    environment:
-      - APP_ENV=${APP_ENV}
-    networks:
-      - app-network
-    restart: unless-stopped
-
-  redis:
-    image: redis:latest
-    container_name: env-redis
-    environment:
-      - REDIS_PORT=${REDIS_PORT}
-    networks:
-      - app-network
-    restart: unless-stopped
-
-networks:
-  app-network:
-    driver: bridge
-[13-4] 환경 변수 적용 확인
-powershell
-📋 복사
-# .env 파일 자동 로드 후 실행
-PS C:\my-dev-workspace> docker compose up -d
-
-[+] Running 3/3
- ✔ Network my-dev-workspace_app-network  Created
- ✔ Container env-redis                   Started
- ✔ Container env-web                     Started
-
-# 환경 변수 적용 확인
-PS C:\my-dev-workspace> docker compose config
-
-services:
-  web:
-    image: my-nginx:1.0        ← ${NGINX_VERSION} → 1.0 치환 ✅
-    ports:
-      - "8080:80"              ← ${APP_PORT} → 8080 치환 ✅
-    environment:
-      APP_ENV: development     ← ${APP_ENV} → development 치환 ✅
-  redis:
-    image: redis:latest
-    environment:
-      REDIS_PORT: "6379"       ← ${REDIS_PORT} → 6379 치환 ✅
-[13-5] 컨테이너 내부 환경 변수 확인
-powershell
-📋 복사
-PS C:\my-dev-workspace> docker exec env-web env | findstr APP_ENV
-APP_ENV=development  ✅
-[13-6] .gitignore에 .env 등록
-code
-📋 복사
-# .gitignore
+```gitignore
+# 민감정보
 .env
-*.log
-⚠️ 주의: .env 파일에는 비밀번호·API 키 등 민감 정보가 포함될 수 있으므로
-반드시 .gitignore에 등록하여 GitHub에 올라가지 않도록 합니다.
+.env.*
+*.pem
+*.key
+secrets/
+credentials.json
 
-[섹션 14] GitHub SSH 키 설정
-[14-1] SSH 키 방식 vs HTTPS 방식 비교
-구분	HTTPS	SSH
-인증	아이디/비밀번호 또는 토큰	공개키/개인키 쌍
-편의성	매번 인증 필요	최초 1회 설정 후 자동 인증
-보안	토큰 관리 필요	개인키 로컬 보관
-권장	일회성 작업	지속적 개발 환경
-[14-2] SSH 키 생성
-powershell
-📋 복사
-PS C:\> ssh-keygen -t ed25519 -C "[이메일@example.com]"
+# OS/IDE
+.DS_Store
+.vscode/
+.idea/
 
-Generating public/private ed25519 key pair.
-Enter file in which to save the key (C:\Users\[사용자명]/.ssh/id_ed25519):
-Enter passphrase (empty for no passphrase):
-Enter same passphrase again:
-Your identification has been saved in C:\Users\[사용자명]/.ssh/id_ed25519
-Your public key has been saved in C:\Users\[사용자명]/.ssh/id_ed25519.pub
-The key fingerprint is:
-SHA256:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx [이메일@example.com]
-[14-3] 생성된 키 확인
-powershell
-📋 복사
-PS C:\> ls ~/.ssh
+# 로그/임시 파일
+*.log.tmp
+tmp/
+```
 
-    디렉터리: C:\Users\[사용자명]\.ssh
+### 14-3. 커밋 전 체크리스트
+- [x] `git diff --cached`로 스테이징 내용 전수 확인
+- [x] 스크린샷 이미지에 토큰/개인정보 미포함 확인
+- [x] README 및 로그 파일 내 실명·실제 이메일 없음 확인
+- [x] `docker inspect` 등 자동 수집 로그에 호스트 경로·사용자명 노출 여부 확인
 
-Mode    LastWriteTime    Length  Name
-----    -------------    ------  ----
--a---   2025-01-01       411     id_ed25519        ← 개인키 (절대 공유 금지 🔒)
--a---   2025-01-01       105     id_ed25519.pub    ← 공개키 (GitHub에 등록)
-[14-4] 공개키 내용 확인
-powershell
-📋 복사
-PS C:\> Get-Content ~/.ssh/id_ed25519.pub
+### 14-4. 사고 발생 시 대응
+> 만약 토큰이 노출되었다면:
+> 1. 즉시 GitHub **Settings → Developer settings → Personal access tokens**에서 해당 토큰 revoke
+> 2. `git filter-repo` 또는 `BFG Repo-Cleaner`로 히스토리에서 제거
+> 3. 강제 푸시 후 협업자에게 재클론 안내
+> 4. 재발 방지를 위해 `git-secrets` 또는 pre-commit hook 도입 검토
 
-ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA[공개키내용] [이메일@example.com]
-[14-5] SSH Agent 등록
-powershell
-📋 복사
-# SSH Agent 서비스 시작
-PS C:\> Start-Service ssh-agent
+---
 
-# 개인키 등록
-PS C:\> ssh-add ~/.ssh/id_ed25519
-Identity added: C:\Users\[사용자명]\.ssh\id_ed25519
+## 15. 트러블슈팅
 
-# 등록 확인
-PS C:\> ssh-add -l
-256 SHA256:xxxxxxxxxxxx [이메일@example.com] (ED25519)
-[14-6] GitHub에 공개키 등록
-code
-📋 복사
-1. GitHub 접속 → 우측 상단 프로필 클릭
-2. Settings → SSH and GPG keys
-3. [New SSH key] 클릭
-4. Title: "개발 워크스테이션"
-5. Key: id_ed25519.pub 내용 붙여넣기
-6. [Add SSH key] 클릭
+### 15-1. `permission denied while trying to connect to the Docker daemon socket`
 
-[GitHub SSH 키 등록 스크린샷 첨부]
-→ screenshots/section14-ssh-github.png
-[14-7] SSH 연결 테스트
-powershell
-📋 복사
-PS C:\> ssh -T git@github.com
+| 항목 | 내용 |
+|---|---|
+| **문제** | 일반 사용자로 `docker ps` 실행 시 권한 거부 오류 |
+| **원인 가설** | 현재 사용자가 `docker` 그룹에 속하지 않아 소켓 접근 불가 |
+| **확인** | `groups` 명령에 `docker` 미포함 확인 |
+| **해결** | `sudo usermod -aG docker $USER` 후 **로그아웃/재로그인** |
+| **대안** | 매번 `sudo docker ...`로 실행 (보안상 비권장) |
 
-Hi [사용자명]! You've successfully authenticated,
-but GitHub does not provide shell access.
-[14-8] 원격 저장소 URL을 SSH로 변경
-powershell
-📋 복사
-# 현재 원격 URL 확인
-PS C:\> git remote -v
-origin  https://github.com/[사용자명]/my-dev-workspace.git (fetch)
-origin  https://github.com/[사용자명]/my-dev-workspace.git (push)
+```bash
+# 해결 과정
+$ groups
+user adm cdrom sudo
 
-# SSH URL로 변경
-PS C:\> git remote set-url origin git@github.com:[사용자명]/my-dev-workspace.git
+$ sudo usermod -aG docker $USER
+$ newgrp docker   # 즉시 반영 (또는 재로그인)
 
-[14-9] SSH 방식으로 푸시 확인
-powershell
-📋 복사
-PS C:\my-dev-workspace> git push origin main
+$ groups
+user adm cdrom sudo docker   # ✅ docker 그룹 추가됨
 
-Enumerating objects: 10, done.
-Counting objects: 100% (10/10), done.
-Delta compression using up to 8 threads
-Compressing objects: 100% (7/7), done.
-Writing objects: 100% (10/10), 2.34 KiB | 2.34 MiB/s, done.
-Total 10 (delta 1), reused 0 (delta 0), pack-reused 0
-To git@github.com:[사용자명]/my-dev-workspace.git
-   xxxxxxx..yyyyyyy  main -> main
-[14-10] SSH 설정 완료 확인 요약
-단계	명령	결과
-키 생성	ssh-keygen -t ed25519	✅ 공개키/개인키 생성
-Agent 등록	ssh-add ~/.ssh/id_ed25519	✅ 개인키 등록
-GitHub 등록	GitHub Settings → SSH keys	✅ 공개키 등록
-연결 테스트	ssh -T git@github.com	✅ 인증 성공
-URL 변경	git remote set-url origin	✅ SSH URL 적용
-푸시 확인	git push origin main	✅ 푸시 성공
-📁 최종 프로젝트 구조
-code
-📋 복사
-my-dev-workspace/
-├── .env                    ← 환경 변수 (gitignore 처리)
-├── .gitignore              ← Git 제외 파일 목록
-├── Dockerfile              ← 커스텀 NGINX 이미지 정의
-├── README.md               ← 프로젝트 문서
-├── docker-compose.yml      ← Compose 멀티 서비스 정의
-├── src/
-│   └── index.html          ← 커스텀 웹 페이지
-├── logs/
-│   └── test_backup.txt     ← 섹션1 실습 파일
-└── screenshots/
-    ├── section7-browser.png    ← 브라우저 접속 증거
-    ├── section9-github.png     ← GitHub 연동 증거
-    └── section14-ssh-github.png ← SSH 키 등록 증거
-🔄 전체 워크플로우 요약
-code
-📋 복사
-[1] CLI 조작
-    └─▶ 디렉토리/파일 생성·이동·삭제·권한 관리
+$ docker ps
+CONTAINER ID   IMAGE   ...   # 정상 동작
+```
 
-[2] Docker 기초
-    └─▶ 이미지 pull → 컨테이너 run → ps/logs/stats → stop/rm
+### 15-2. `bind: address already in use` (포트 충돌)
 
-[3] 커스텀 이미지
-    └─▶ Dockerfile 작성 → docker build → docker run
+| 항목 | 내용 |
+|---|---|
+| **문제** | `docker run -p 8080:80 ...` 실행 시 포트 바인딩 실패 |
+| **원인 가설** | 호스트 8080 포트를 다른 프로세스/컨테이너가 이미 사용 중 |
+| **확인** | `ss -tulpn | grep 8080` 및 `docker ps`로 사용 중인 프로세스 식별 |
+| **해결** | 기존 컨테이너 중지 또는 호스트 포트 변경 (`-p 8090:80`) |
 
-[4] 포트 매핑
-    └─▶ -p 8080:80 → curl/브라우저 접속 확인
+```bash
+# 원인 확인
+$ ss -tulpn | grep 8080
+tcp   LISTEN  0  4096  0.0.0.0:8080  0.0.0.0:*  users:(("docker-proxy",pid=1234))
 
-[5] 볼륨 영속성
-    └─▶ volume create → 컨테이너 연결 → 삭제 후 재연결 → 데이터 유지 확인
+$ docker ps | grep 8080
+abc123   nginx:alpine   ...   0.0.0.0:8080->80/tcp   old-web
 
-[6] Git/GitHub
-    └─▶ config 설정 → init → add/commit → remote → push
+# 해결 (방법 1: 기존 컨테이너 정리)
+$ docker rm -f old-web
+$ docker run -d --name mynginx -p 8080:80 my-nginx:1.0   #
 
-[7] Docker Compose
-    └─▶ 단일 서비스 → 멀티 서비스 → 운영 명령 (up/down/ps/logs)
+# 해결 (방법 1: 기존 컨테이너 정리)
+$ docker rm -f old-web
+$ docker run -d --name mynginx -p 8080:80 my-nginx:1.0   # ✅ 성공
 
-[8] 환경 변수
-    └─▶ .env 작성 → Compose에서 참조 → .gitignore 등록
+# 해결 (방법 2: 호스트 포트 변경)
+$ docker run -d --name mynginx -p 8090:80 my-nginx:1.0
+$ curl -I http://localhost:8090
+HTTP/1.1 200 OK
+```
 
-[9] SSH 인증
-    └─▶ 키 생성 → Agent 등록 → GitHub 등록 → 연결 테스트 → SSH 푸시
-💡 배운 점 및 회고
-잘 된 점
-Docker 볼륨을 통해 데이터 영속성의 중요성을 직접 실습으로 확인
-Docker Compose로 멀티 컨테이너 환경을 YAML 한 파일로 관리하는 편리함 체험
-SSH 키 기반 인증으로 GitHub 연동 시 보안성과 편의성 동시 확보
-.env 파일로 설정과 코드를 분리하는 실무적 습관 형성
+### 15-3. `COPY failed: no such file or directory` (빌드 컨텍스트 오류)
 
-어려웠던 점 & 해결 방법
-어려웠던 점	해결 방법
-Windows에서 SSH Agent 서비스 시작 오류	Start-Service ssh-agent 관리자 권한으로 실행
-Compose 네트워크 통신 확인	docker network inspect로 IP 확인 후 ping 테스트
-.env 변수가 Compose에 적용 안 됨	.env 파일 위치를 docker-compose.yml과 동일 경로에 배치
-giy 
-향후 개선 방향
-Dockerfile 멀티 스테이지 빌드 적용
-GitHub Actions CI/CD 파이프라인 연동
-Docker Compose 헬스체크(healthcheck) 설정 추가
-환경별(dev/prod) Compose 파일 분리 (docker-compose.override.yml)
+| 항목 | 내용 |
+|---|---|
+| **문제** | `docker build` 시 `COPY app/index.html ...` 단계에서 실패 |
+| **원인 가설** | 빌드 명령 실행 위치가 잘못되어 상대경로가 맞지 않음 |
+| **확인** | `pwd`로 현재 위치 및 `ls app/` 파일 존재 여부 확인 |
+| **해결** | 프로젝트 루트(`docker-mission/`)에서 `docker build -t my-nginx:1.0 .` 실행 |
 
-📎 참고 자료
-자료	URL
-Docker 공식 문서	https://docs.docker.com
-Docker Compose 공식 문서	https://docs.docker.com/compose
-Git 공식 문서	https://git-scm.com/doc
-GitHub SSH 설정 가이드	https://docs.github.com/en/authentication/connecting-to-github-with-ssh
+```bash
+# 잘못된 예
+$ cd app && docker build -t my-nginx:1.0 .
+ERROR: COPY failed: file not found in build context
 
+# 올바른 예
+$ cd ~/workspace/docker-mission
+$ ls
+Dockerfile  app/  README.md  ...
+$ docker build -t my-nginx:1.0 .   # ✅ 성공
+```
+
+**학습 포인트**: Dockerfile의 `COPY` 경로는 **빌드 컨텍스트(마지막 `.`)** 기준의 상대경로다.
+
+### 15-4. `fatal: Authentication failed` (GitHub 푸시 실패)
+
+| 항목 | 내용 |
+|---|---|
+| **문제** | `git push` 시 비밀번호 인증 거부 |
+| **원인 가설** | GitHub는 2021년 8월 이후 **비밀번호 인증 폐지**, PAT(개인 액세스 토큰) 필요 |
+| **확인** | 오류 메시지에 `Support for password authentication was removed` 포함 |
+| **해결** | GitHub → Settings → Developer settings → **Personal access tokens** 생성 후 비밀번호 대신 입력 |
+
+```bash
+# 자격 증명 캐시 (한 번 입력하면 저장)
+$ git config --global credential.helper store
+
+$ git push -u origin main
+Username: <본인_계정>
+Password: ghp_****   # ← PAT 입력 (화면에 표시되지 않음)
+```
+
+> 🔒 **주의**: PAT는 비밀번호와 동일한 민감정보입니다. 저장소/스크린샷에 절대 노출 금지!
+
+---
+
+## 16. 회고
+
+### 16-1. 무엇을 할 수 있게 되었나?
+- Linux CLI로 파일/디렉토리/권한을 **의도한 대로 정확하게** 다룰 수 있게 되었다.
+- Docker의 **이미지 ↔ 컨테이너** 개념과 생명주기(run/stop/rm)를 명확히 구분할 수 있다.
+- Dockerfile로 **재현 가능한 커스텀 이미지**를 직접 빌드하고 포트/볼륨을 연결할 수 있다.
+- Git/GitHub 워크플로우(init → commit → push)를 혼자서 처음부터 끝까지 수행할 수 있다.
+
+### 16-2. 가장 어려웠던 지점과 극복 과정
+- **포트 매핑의 방향성 혼동**: 처음에는 `-p 80:8080`으로 거꾸로 입력해 접속이 안 됐다.  
+  → `호스트:컨테이너` 순서임을 반복 실습으로 체득했다.
+- **볼륨 vs 바인드 마운트 차이**: 두 방식이 비슷해 보여 혼란스러웠다.  
+  → 표로 정리(섹션 12-5)하고, "**상태는 볼륨, 코드는 바인드마운트**" 원칙으로 정리.
+- **Dockerfile 빌드 컨텍스트**: `COPY` 경로가 Dockerfile 위치가 아니라 **빌드 실행 위치** 기준인 걸 모르고 헤맸다.  
+  → 트러블슈팅 15-3에 기록.
+
+### 16-3. 다음에 적용하고 싶은 것
+- `docker-compose.yml`로 **다중 컨테이너 오케스트레이션** 연습 (예: NGINX + DB).
+- GitHub Actions로 **빌드/푸시 자동화 파이프라인** 구성.
+- 이미지 크기 최적화 (`.dockerignore`, 멀티스테이지 빌드) 적용.
+- `git-secrets` / pre-commit hook 도입으로 **민감정보 커밋 차단** 자동화.
+
+### 16-4. 환경 재현 한 줄 가이드 (협업자용)
+
+```bash
+# 1) 저장소 클론
+git clone https://github.com/<본인_계정>/docker-mission.git
+cd docker-mission
+
+# 2) 이미지 빌드 및 실행
+docker build -t my-nginx:1.0 .
+docker run -d --name mynginx -p 8080:80 my-nginx:1.0
+
+# 3) 브라우저에서 접속
+# http://localhost:8080
+```
+
+---
+
+## 📌 제출 정보
+
+| 항목 | 내용 |
+|---|---|
+| GitHub Repository | https://github.com/`<본인_계정>`/docker-mission |
+| 제출일 | 2025-01-XX |
+| 작성자 | `<본인_이름>` |
+
+---
+
+> 본 문서는 교육 과정의 미션 수행 결과물로, 모든 명령/출력/스크린샷은 실제 실행 결과를 기반으로 작성되었습니다.  
+> 민감정보(토큰·실제 이메일·개인 IP 등)는 섹션 14의 원칙에 따라 마스킹하였습니다.
