@@ -1113,7 +1113,7 @@ SSH 키 기반 인증으로 GitHub 연동 시 보안성과 편의성 동시 확�
 Windows에서 SSH Agent 서비스 시작 오류	Start-Service ssh-agent 관리자 권한으로 실행
 Compose 네트워크 통신 확인	docker network inspect로 IP 확인 후 ping 테스트
 .env 변수가 Compose에 적용 안 됨	.env 파일 위치를 docker-compose.yml과 동일 경로에 배치
-
+giy 
 향후 개선 방향
 Dockerfile 멀티 스테이지 빌드 적용
 GitHub Actions CI/CD 파이프라인 연동
@@ -1127,10 +1127,3 @@ Docker Compose 공식 문서	https://docs.docker.com/compose
 Git 공식 문서	https://git-scm.com/doc
 GitHub SSH 설정 가이드	https://docs.github.com/en/authentication/connecting-to-github-with-ssh
 
-✅ 제출 체크리스트
-
-모든 섹션 스크린샷 첨부 완료
-GitHub 저장소 Public 설정 확인
-README.md GitHub에서 정상 렌더링 확인
-docker-compose.yml docker compose up -d 정상 실행 확인
-SSH 푸시 정상 동작 확인
