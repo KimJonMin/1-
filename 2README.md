@@ -357,18 +357,16 @@ PS C:\> docker attach my-nginx
 
 ---
 
-### [섹션 6] 커스텀 이미지 제작
+[섹션 6] 커스텀 이미지 제작 
+[6-1] 프로젝트 구조
 
-#### [6-1] 프로젝트 구조
-```
 my-dev-workspace/
 ├── Dockerfile
 └── src/
     └── index.html
-```
 
-#### [6-2] src/index.html
-```html
+[6-2] src/index.html
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -380,11 +378,9 @@ my-dev-workspace/
   <p>커스텀 NGINX 이미지로 서비스 중입니다.</p>
 </body>
 </html>
-```
 
 [6-3] Dockerfile
-dockerfile
-📋 복사
+
 # 베이스 이미지: 공식 NGINX
 FROM nginx:latest
 
@@ -401,7 +397,7 @@ EXPOSE 80
 
 [6-4] 이미지 빌드
 powershell
-📋 복사
+
 PS C:\my-dev-workspace> docker build -t my-nginx:1.0 .
 
 [+] Building 3.2s (7/7) FINISHED
@@ -413,30 +409,34 @@ PS C:\my-dev-workspace> docker build -t my-nginx:1.0 .
  => exporting to image                                        0.1s
  => => naming to docker.io/library/my-nginx:1.0               0.0s
 
- [6-5] 빌드된 이미지 확인
+[6-5] 빌드된 이미지 확인
 powershell
-📋 복사
+
 PS C:\my-dev-workspace> docker images
 REPOSITORY   TAG       IMAGE ID       CREATED          SIZE
 my-nginx     1.0       aabbccddee11   10 seconds ago   192MB
 nginx        latest    xxxxxxxxxxxx   2 weeks ago      192MB
+
 [6-6] 커스텀 이미지 실행 테스트
 powershell
-📋 복사
+
 PS C:\my-dev-workspace> docker run -d --name test-custom -p 9090:80 my-nginx:1.0
 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 PS C:\my-dev-workspace> docker ps
 CONTAINER ID   IMAGE          COMMAND                  CREATED        STATUS        PORTS                  NAMES
 xxxxxxxxxxxx   my-nginx:1.0   "/docker-entrypoint…"   5 seconds ago  Up 4 seconds  0.0.0.0:9090->80/tcp   test-custom
+
 [섹션 7] 포트 매핑 및 접속 증거
 [7-1] 포트 매핑 개념
+
 구분	설명
 -p 호스트포트:컨테이너포트	호스트의 포트를 컨테이너 포트에 연결
 0.0.0.0:8080->80/tcp	모든 인터페이스의 8080 → 컨테이너 80
+
 [7-2] 컨테이너 실행 (포트 매핑 적용)
 powershell
-📋 복사
+
 PS C:\my-dev-workspace> docker run -d --name my-web -p 8080:80 my-nginx:1.0
 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
@@ -444,9 +444,10 @@ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 PS C:\my-dev-workspace> docker ps
 CONTAINER ID   IMAGE          PORTS                  NAMES
 xxxxxxxxxxxx   my-nginx:1.0   0.0.0.0:8080->80/tcp   my-web
+
 [7-3] curl 접속 확인
 powershell
-📋 복사
+
 PS C:\my-dev-workspace> curl http://localhost:8080
 
 StatusCode        : 200
@@ -462,9 +463,9 @@ Content           : <!DOCTYPE html>
                       <p>커스텀 NGINX 이미지로 서비스 중입니다.</p>
                     </body>
                     </html>
+
 [7-4] 브라우저 접속 확인
-code
-📋 복사
+
 접속 URL: http://localhost:8080
 
 [브라우저 스크린샷 첨부]
@@ -474,18 +475,18 @@ code
 브라우저에서 http://localhost:8080 접속
 화면 캡처 후 screenshots/ 폴더에 저장
 아래와 같이 README에 삽입
-markdown
-📋 복사
+
 ![브라우저 접속 화면](screenshots/section7-browser.png)
+
 [섹션 8] Docker 볼륨 영속성 검증
 [8-1] 볼륨 영속성 개념
-code
-📋 복사
+
 컨테이너 삭제 → 내부 데이터 소멸 ❌
 볼륨 사용 시  → 컨테이너 삭제 후에도 데이터 유지 ✅
+
 [8-2] 볼륨 생성
 powershell
-📋 복사
+
 PS C:\> docker volume create my-data-volume
 my-data-volume
 
@@ -507,7 +508,7 @@ PS C:\> docker volume inspect my-data-volume
 ]
 [8-3] 볼륨 연결 후 데이터 생성 (컨테이너 1)
 powershell
-📋 복사
+
 # 볼륨 마운트하여 컨테이너 실행
 PS C:\> docker run -it --name container-1 -v my-data-volume:/app/data ubuntu bash
 
@@ -521,9 +522,10 @@ test.txt
 
 root@xxxxxxxxxxxx:/# exit
 exit
+
 [8-4] 컨테이너 삭제 (데이터 유지 확인 전)
 powershell
-📋 복사
+
 # 컨테이너 삭제
 PS C:\> docker rm container-1
 container-1
@@ -537,9 +539,10 @@ CONTAINER ID   IMAGE   COMMAND   CREATED   STATUS   PORTS   NAMES
 PS C:\> docker volume ls
 DRIVER    VOLUME NAME
 local     my-data-volume  ← 볼륨 유지 ✅
+
 [8-5] 새 컨테이너로 데이터 유지 확인 (컨테이너 2)
 powershell
-📋 복사
+
 # 동일 볼륨으로 새 컨테이너 실행
 PS C:\> docker run -it --name container-2 -v my-data-volume:/app/data ubuntu bash
 
@@ -552,6 +555,7 @@ root@yyyyyyyyyyyy:/# cat /app/data/test.txt
 
 root@yyyyyyyyyyyy:/# exit
 exit
+
 [8-6] 검증 결과 요약
 단계	명령	결과
 볼륨 생성	docker volume create my-data-volume	✅ 생성 완료
@@ -564,7 +568,7 @@ exit
 [섹션 9] Git 설정 및 GitHub 연동
 [9-1] Git 사용자 정보 설정
 powershell
-📋 복사
+
 # 사용자 이름 설정
 PS C:\> git config --global user.name "[사용자명]"
 
@@ -576,9 +580,10 @@ PS C:\> git config --global init.defaultBranch main
 
 # 줄바꿈 설정 (Windows)
 PS C:\> git config --global core.autocrlf true
+
 [9-2] git config --list 결과
 powershell
-📋 복사
+
 PS C:\> git config --list
 
 core.symlinks=false
@@ -591,9 +596,10 @@ color.interactive=true
 user.name=[사용자명]
 user.email=[이메일@example.com]
 init.defaultbranch=main
+
 [9-3] 로컬 저장소 초기화 및 첫 커밋
 powershell
-📋 복사
+
 PS C:\my-dev-workspace> git init
 Initialized empty Git repository in C:/my-dev-workspace/.git/
 
@@ -605,9 +611,10 @@ PS C:\my-dev-workspace> git commit -m "feat: 개발 워크스테이션 초기 �
  create mode 100644 Dockerfile
  create mode 100644 README.md
  create mode 100644 src/index.html
+
 [9-4] GitHub 원격 저장소 연동
 powershell
-📋 복사
+
 # 원격 저장소 추가
 PS C:\my-dev-workspace> git remote add origin https://github.com/[사용자명]/my-dev-workspace.git
 
@@ -623,8 +630,7 @@ Counting objects: 100% (7/7), done.
 Writing objects: 100% (7/7), 1.23 KiB | 1.23 MiB/s, done.
 Branch 'main' set up to track remote branch 'main' from 'origin'.
 [9-5] GitHub 연동 증거
-code
-📋 복사
+
 [GitHub 저장소 스크린샷 첨부]
 → screenshots/section9-github.png
 
@@ -634,26 +640,26 @@ code
 ✅ 파일 목록 확인 (Dockerfile, README.md, src/index.html)
 📌 스크린샷 삽입
 
-markdown
-📋 복사
 ![GitHub 연동 확인](screenshots/section9-github.png)
+
 [섹션 10] Docker Compose 기초 (단일 서비스)
 [10-1] Docker Compose 개념
 항목	설명
 목적	여러 컨테이너를 YAML 파일로 일괄 관리
 파일명	docker-compose.yml
 핵심 명령	docker compose up / down / ps / logs
+
 [10-2] 디렉토리 구조
-code
-📋 복사
+
 my-dev-workspace/
 ├── docker-compose.yml
 ├── Dockerfile
 └── src/
     └── index.html
+
 [10-3] docker-compose.yml (단일 서비스)
 yaml
-📋 복사
+
 version: "3.8"
 
 services:
@@ -665,9 +671,10 @@ services:
     volumes:
       - ./src:/usr/share/nginx/html
     restart: unless-stopped
+
 [10-4] Compose 실행
 powershell
-📋 복사
+
 PS C:\my-dev-workspace> docker compose up -d
 
 [+] Running 1/1
@@ -677,9 +684,10 @@ PS C:\my-dev-workspace> docker compose ps
 
 NAME          IMAGE          COMMAND                  SERVICE   STATUS    PORTS
 compose-web   my-nginx:1.0   "/docker-entrypoint…"   web       running   0.0.0.0:8080->80/tcp
+
 [10-5] 접속 확인
 powershell
-📋 복사
+
 PS C:\my-dev-workspace> curl http://localhost:8080
 
 StatusCode : 200
@@ -687,6 +695,7 @@ Content    : <!DOCTYPE html>...🐳 Docker 개발 환경 구축 완료!...
 
 [섹션 11] Docker Compose 멀티 컨테이너
 [11-1] 멀티 서비스 구성 개요
+
 code
 📋 복사
 ┌──────────────────────────────────────┐
@@ -1092,29 +1101,32 @@ code
 
 [9] SSH 인증
     └─▶ 키 생성 → Agent 등록 → GitHub 등록 → 연결 테스트 → SSH 푸시
-
 💡 배운 점 및 회고
 잘 된 점
 Docker 볼륨을 통해 데이터 영속성의 중요성을 직접 실습으로 확인
 Docker Compose로 멀티 컨테이너 환경을 YAML 한 파일로 관리하는 편리함 체험
 SSH 키 기반 인증으로 GitHub 연동 시 보안성과 편의성 동시 확보
 .env 파일로 설정과 코드를 분리하는 실무적 습관 형성
+
 어려웠던 점 & 해결 방법
 어려웠던 점	해결 방법
 Windows에서 SSH Agent 서비스 시작 오류	Start-Service ssh-agent 관리자 권한으로 실행
 Compose 네트워크 통신 확인	docker network inspect로 IP 확인 후 ping 테스트
 .env 변수가 Compose에 적용 안 됨	.env 파일 위치를 docker-compose.yml과 동일 경로에 배치
+
 향후 개선 방향
 Dockerfile 멀티 스테이지 빌드 적용
 GitHub Actions CI/CD 파이프라인 연동
 Docker Compose 헬스체크(healthcheck) 설정 추가
 환경별(dev/prod) Compose 파일 분리 (docker-compose.override.yml)
+
 📎 참고 자료
 자료	URL
 Docker 공식 문서	https://docs.docker.com
 Docker Compose 공식 문서	https://docs.docker.com/compose
 Git 공식 문서	https://git-scm.com/doc
 GitHub SSH 설정 가이드	https://docs.github.com/en/authentication/connecting-to-github-with-ssh
+
 ✅ 제출 체크리스트
 
 모든 섹션 스크린샷 첨부 완료
