@@ -294,8 +294,6 @@ CONTAINER ID   IMAGE   COMMAND   CREATED   STATUS   PORTS   NAMES
 $ docker system df
 TYPE            TOTAL   AC
 
-### 8-1. 디스크 사용량 확인
-
 ```bash
 $ docker system df
 TYPE            TOTAL     ACTIVE    SIZE      RECLAIMABLE
@@ -371,7 +369,7 @@ $ docker exec -it web-test sh
 / # whoami
 root
 / # nginx -v
-nginx version: nginx/1.25.3
+nginx version: nginx:alpine
 / # exit
 ```
 
@@ -700,7 +698,7 @@ Untracked files:
 $ git add .
 $ git commit -m "feat: 초기 프로젝트 구조 및 Docker 환경 구축"
 [main (root-commit) abc1234] feat: 초기 프로젝트 구조 및 Docker 환경 구축
- 10 files changed, 450 insertions(+)
+ 15 files changed, 529 insertions(+)
 ```
 
 ### 13-3. GitHub 원격 저장소 연결
@@ -919,7 +917,7 @@ $ docker run --rm -v mydata:/data -v $(pwd):/backup alpine \
     tar xzf /backup/mydata-backup.tar.gz -C /data
 ```
 
----
+## 16. 회고
 
 ### 16-1. 배운 점
 
@@ -1014,7 +1012,7 @@ $ docker volume rm mydata
 | 실습한 명령어 종류 | 40+ 개 |
 | 검증한 시나리오 | 15+ 건 |
 | 해결한 트러블슈팅 | 6건 |
-| 커밋 수 | 12회 |
+| 커밋 수 | 7회 |
 | 소요 시간 | 약 8시간 |
 
 ---
