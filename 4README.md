@@ -520,27 +520,20 @@ healthy
 
 **검증 목표**: 컨테이너가 삭제되어도 볼륨에 저장된 데이터는 유지되며, 서로 다른 컨테이너/이미지에서도 동일 볼륨에 접근할 수 있음을 증명한다.
 
-### 12-1. 볼륨 생성 및 연결
+### 12-1. 실습 명령어 요약
 
-```bash
+# 1. 명명된 볼륨 생성 및 데이터 쓰기 (1차 컨테이너)
 $ docker volume create mydata
-mydata
+$ docker run --rm -v mydata:/data alpine \
+    sh -c "echo 'persist-ok' > /data/note.txt"
 
-$ docker volume ls
-DRIVER    VOLUME NAME
-local     mydata
+# 2. 컨테이너 삭제 후 데이터 유지 확인 (2차 컨테이너)
+$ docker run --rm -v mydata:/data alpine cat /data/note.txt
+persist-ok
 
-$ docker volume inspect mydata
-[
-    {
-        "CreatedAt": "2025-01-15T11:00:00Z",
-        "Driver": "local",
-        "Mountpoint": "/var/lib/docker/volumes/mydata/_data",
-        "Name": "mydata",
-        "Scope": "local"
-    }
-]
-```
+# 3. 다른 이미지(ubuntu)에서 동일 데이터 접근 확인 (3차 컨테이너)
+$ docker run --rm -v mydata:/data ubuntu:22.04 cat /data/note.txt
+persist-ok
 
 ### 12-2. 데이터 기록 (1차 컨테이너)
 
