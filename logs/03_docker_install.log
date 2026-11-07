@@ -1,0 +1,10 @@
+docker --version | Out-File -FilePath "03_docker_install.log"
+
+# Docker 설치 정보 전체 저장
+@"
+=== Docker 설치 확인 로그 ===
+날짜: $(Get-Date)
+"@ | Out-File -FilePath "03_docker_install.log"
+
+docker --version >> 03_docker_install.log
+docker info >> 03_docker_install.log

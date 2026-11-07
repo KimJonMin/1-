@@ -1,0 +1,7 @@
+@"
+=== 컨테이너 작업 로그 ===
+날짜: $(Get-Date)
+"@ | Out-File -FilePath "logs/04_container_ops.log" -Encoding utf8
+
+# 컨테이너 목록 저장
+docker ps -a >> logs/04_container_ops.log
