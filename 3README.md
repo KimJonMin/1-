@@ -498,7 +498,6 @@ Content-Length: 115
 $ curl http://localhost:8080/health
 healthy
 ```
-
 ### 11-3. 브라우저 접속 스크린샷
 
 ![브라우저 접속 성공](docs/screenshots/browser_8080.png)
